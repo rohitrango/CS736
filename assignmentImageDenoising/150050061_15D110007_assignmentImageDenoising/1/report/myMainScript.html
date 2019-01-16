@@ -1,0 +1,303 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>myMainScript</title><meta name="generator" content="MATLAB 8.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-02-18"><meta name="DC.source" content="myMainScript.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1>Note: The notation for alpha is opposite to that mentioned in class (and in the PS). So, please treat the value of alpha as 1-alpha (and vice versa)</h1></div>
+<div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Quadratic loss</a></li><li><a href="#3">Huber loss</a></li><li><a href="#4">discontinuity adaptive loss</a></li><li><a href="#5">Results</a></li></ul></div><pre class="codeinput">tic;
+load(<span class="string">'../data/assignmentImageDenoisingPhantom.mat'</span>);
+
+myNumOfColors = 200;
+myColorScale = [ [0:1/(myNumOfColors-1):1]' , [0:1/(myNumOfColors-1):1]', [0:1/(myNumOfColors-1):1]' ];
+
+nImage = abs(imageNoisy);
+
+figure;
+imagesc(nImage);
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis <span class="string">tight</span>;
+title(<span class="string">'Noisy image'</span>);
+
+figure;
+imagesc(imageNoiseless);
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis <span class="string">tight</span>;
+title(<span class="string">'Noiseless image'</span>);
+
+<span class="comment">% Here, we use the Rician PDF for the noise prior</span>
+<span class="comment">% Also, show the results</span>
+fprintf(<span class="string">'RRMSE between noisy and noiseless images %f\n'</span>, RRMSE(imageNoiseless, imageNoisy));
+</pre><pre class="codeoutput">RRMSE between noisy and noiseless images 0.298579
+</pre><img vspace="5" hspace="5" src="myMainScript_01.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_02.png" alt=""> <h2>Quadratic loss<a name="2"></a></h2><pre class="codeinput">alpha = 0.82;
+gamma = 0;
+
+<span class="keyword">for</span> alph = [0.8*alpha, min(1, 1.2*alpha), alpha],
+    [image_quad, loss_quad] = denoise(imageNoisy, alph, 1, <span class="string">'q'</span>, gamma);
+    fprintf(<span class="string">'RRMSE for quadratic prior = %f for alpha = %f\n'</span>, RRMSE(imageNoiseless, image_quad), alph);
+<span class="keyword">end</span>
+
+figure;
+imagesc(abs(image_quad));
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis <span class="string">tight</span>;
+title(<span class="string">'Denoised using quadratic prior'</span>);
+
+figure;
+plot(loss_quad);
+title(<span class="string">'Loss function using quadratic prior'</span>);
+xlabel(<span class="string">'Iteration number'</span>);
+ylabel(<span class="string">'Loss'</span>);
+</pre><pre class="codeoutput">RRMSE for quadratic prior = 0.260790 for alpha = 0.656000
+RRMSE for quadratic prior = 0.267301 for alpha = 0.984000
+RRMSE for quadratic prior = 0.216311 for alpha = 0.820000
+</pre><img vspace="5" hspace="5" src="myMainScript_03.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_04.png" alt=""> <h2>Huber loss<a name="3"></a></h2><pre class="codeinput">alpha = 0.052;
+gamma = 0.006;
+<span class="comment">% Now for Huber loss</span>
+<span class="keyword">for</span> alph = [0.8, 1.2, 1]
+    [image_huber, loss_huber] = denoise(imageNoisy, alph*alpha, 1, <span class="string">'h'</span>, gamma);
+    fprintf(<span class="string">'RRMSE for huber prior = %f for alpha = %f, gamma = %f\n'</span>, RRMSE(imageNoiseless, image_huber), alph*alpha, gamma);
+<span class="keyword">end</span>
+
+<span class="keyword">for</span> gam = [0.8, 1.2, 1]
+    [image_huber, loss_huber] = denoise(imageNoisy, alpha, 1, <span class="string">'h'</span>, gam*gamma);
+    fprintf(<span class="string">'RRMSE for huber prior = %f for alpha = %f, gamma = %f\n'</span>, RRMSE(imageNoiseless, image_huber), alpha, gam*gamma);
+<span class="keyword">end</span>
+
+figure;
+imagesc(abs(image_huber));
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis <span class="string">tight</span>;
+title(<span class="string">'Denoised using huber prior'</span>);
+
+figure;
+plot(loss_huber);
+title(<span class="string">'Loss function using huber prior'</span>);
+xlabel(<span class="string">'Iteration number'</span>);
+ylabel(<span class="string">'Loss'</span>);
+</pre><pre class="codeoutput">RRMSE for huber prior = 0.058586 for alpha = 0.041600, gamma = 0.006000
+RRMSE for huber prior = 0.059160 for alpha = 0.062400, gamma = 0.006000
+RRMSE for huber prior = 0.058436 for alpha = 0.052000, gamma = 0.006000
+RRMSE for huber prior = 0.061053 for alpha = 0.052000, gamma = 0.004800
+RRMSE for huber prior = 0.059416 for alpha = 0.052000, gamma = 0.007200
+RRMSE for huber prior = 0.058436 for alpha = 0.052000, gamma = 0.006000
+</pre><img vspace="5" hspace="5" src="myMainScript_05.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_06.png" alt=""> <h2>discontinuity adaptive loss<a name="4"></a></h2><pre class="codeinput">alpha = 0.027926;
+gamma = 0.003840;
+<span class="comment">% Now for Discontinity Adaptive loss</span>
+<span class="keyword">for</span> alph = [0.8, 1.2, 1]
+    [image_adap, loss_adap] = denoise(imageNoisy, alph*alpha, 1, <span class="string">'d'</span>, gamma);
+    fprintf(<span class="string">'RRMSE for Discontinity Adaptive prior = %f for alpha = %f, gamma = %f\n'</span>, <span class="keyword">...</span>
+                            RRMSE(imageNoiseless, image_adap), alph*alpha, gamma);
+<span class="keyword">end</span>
+
+<span class="keyword">for</span> gam = [0.8, 1.2, 1]
+    [image_adap, loss_adap] = denoise(imageNoisy, alpha, 1, <span class="string">'d'</span>, gam*gamma);
+    fprintf(<span class="string">'RRMSE for Discontinity Adaptive prior = %f for alpha = %f, gamma = %f\n'</span>, <span class="keyword">...</span>
+                            RRMSE(imageNoiseless, image_adap), alpha, gam*gamma);
+<span class="keyword">end</span>
+
+figure;
+imagesc(abs(image_adap));
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis <span class="string">tight</span>;
+title(<span class="string">'Denoised using discontinuity adaptive prior'</span>);
+
+figure;
+plot(loss_adap);
+title(<span class="string">'Loss function using Discontinity Adaptive prior'</span>);
+xlabel(<span class="string">'Iteration number'</span>);
+ylabel(<span class="string">'Loss'</span>);
+</pre><pre class="codeoutput">RRMSE for Discontinity Adaptive prior = 0.064275 for alpha = 0.022341, gamma = 0.003840
+RRMSE for Discontinity Adaptive prior = 0.064224 for alpha = 0.033511, gamma = 0.003840
+RRMSE for Discontinity Adaptive prior = 0.064124 for alpha = 0.027926, gamma = 0.003840
+RRMSE for Discontinity Adaptive prior = 0.064900 for alpha = 0.027926, gamma = 0.003072
+RRMSE for Discontinity Adaptive prior = 0.065392 for alpha = 0.027926, gamma = 0.004608
+RRMSE for Discontinity Adaptive prior = 0.064124 for alpha = 0.027926, gamma = 0.003840
+</pre><img vspace="5" hspace="5" src="myMainScript_07.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_08.png" alt=""> <h2>Results<a name="5"></a></h2><pre class="codeinput">fprintf(<span class="string">'Minimum loss with quadratic prior: %f\n'</span>, loss_quad(size(loss_quad, 1)));
+fprintf(<span class="string">'Minimum loss with Huber prior: %f\n'</span>, loss_huber(size(loss_huber, 1)));
+fprintf(<span class="string">'Minimum loss with discontinuity adaptive prior: %f\n'</span>, loss_adap(size(loss_adap, 1)));
+toc;
+</pre><pre class="codeoutput">Minimum loss with quadratic prior: 465.797717
+Minimum loss with Huber prior: 39.964946
+Minimum loss with discontinuity adaptive prior: 23.229338
+Elapsed time is 19.401759 seconds.
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+tic;
+load('../data/assignmentImageDenoisingPhantom.mat');
+
+myNumOfColors = 200;
+myColorScale = [ [0:1/(myNumOfColors-1):1]' , [0:1/(myNumOfColors-1):1]', [0:1/(myNumOfColors-1):1]' ];
+
+nImage = abs(imageNoisy);
+
+figure;
+imagesc(nImage);
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis tight;
+title('Noisy image');
+
+figure;
+imagesc(imageNoiseless);
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis tight;
+title('Noiseless image');
+
+% Here, we use the Rician PDF for the noise prior
+% Also, show the results
+fprintf('RRMSE between noisy and noiseless images %f\n', RRMSE(imageNoiseless, imageNoisy)); 
+
+%% Quadratic loss
+alpha = 0.82;
+gamma = 0;
+
+for alph = [0.8*alpha, min(1, 1.2*alpha), alpha],
+    [image_quad, loss_quad] = denoise(imageNoisy, alph, 1, 'q', gamma);
+    fprintf('RRMSE for quadratic prior = %f for alpha = %f\n', RRMSE(imageNoiseless, image_quad), alph); 
+end
+
+figure;
+imagesc(abs(image_quad));
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis tight;
+title('Denoised using quadratic prior');
+
+figure;
+plot(loss_quad);
+title('Loss function using quadratic prior');
+xlabel('Iteration number');
+ylabel('Loss');
+
+%% Huber loss
+alpha = 0.052;
+gamma = 0.006;
+% Now for Huber loss
+for alph = [0.8, 1.2, 1]
+    [image_huber, loss_huber] = denoise(imageNoisy, alph*alpha, 1, 'h', gamma);
+    fprintf('RRMSE for huber prior = %f for alpha = %f, gamma = %f\n', RRMSE(imageNoiseless, image_huber), alph*alpha, gamma); 
+end
+
+for gam = [0.8, 1.2, 1]
+    [image_huber, loss_huber] = denoise(imageNoisy, alpha, 1, 'h', gam*gamma);
+    fprintf('RRMSE for huber prior = %f for alpha = %f, gamma = %f\n', RRMSE(imageNoiseless, image_huber), alpha, gam*gamma); 
+end
+
+figure;
+imagesc(abs(image_huber));
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis tight;
+title('Denoised using huber prior');
+
+figure;
+plot(loss_huber);
+title('Loss function using huber prior');
+xlabel('Iteration number');
+ylabel('Loss');
+
+%% discontinuity adaptive loss
+alpha = 0.027926;
+gamma = 0.003840;
+% Now for Discontinity Adaptive loss
+for alph = [0.8, 1.2, 1]
+    [image_adap, loss_adap] = denoise(imageNoisy, alph*alpha, 1, 'd', gamma);
+    fprintf('RRMSE for Discontinity Adaptive prior = %f for alpha = %f, gamma = %f\n', ...
+                            RRMSE(imageNoiseless, image_adap), alph*alpha, gamma); 
+end
+
+for gam = [0.8, 1.2, 1]
+    [image_adap, loss_adap] = denoise(imageNoisy, alpha, 1, 'd', gam*gamma);
+    fprintf('RRMSE for Discontinity Adaptive prior = %f for alpha = %f, gamma = %f\n', ...
+                            RRMSE(imageNoiseless, image_adap), alpha, gam*gamma); 
+end
+    
+figure;
+imagesc(abs(image_adap));
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis tight;
+title('Denoised using discontinuity adaptive prior');
+
+figure;
+plot(loss_adap);
+title('Loss function using Discontinity Adaptive prior');
+xlabel('Iteration number');
+ylabel('Loss');
+
+%% Results
+fprintf('Minimum loss with quadratic prior: %f\n', loss_quad(size(loss_quad, 1)));
+fprintf('Minimum loss with Huber prior: %f\n', loss_huber(size(loss_huber, 1)));
+fprintf('Minimum loss with discontinuity adaptive prior: %f\n', loss_adap(size(loss_adap, 1)));
+toc;
+##### SOURCE END #####
+--></body></html>

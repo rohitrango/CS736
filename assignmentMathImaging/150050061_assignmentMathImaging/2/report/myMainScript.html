@@ -1,0 +1,263 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>myMainScript</title><meta name="generator" content="MATLAB 8.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-03-07"><meta name="DC.source" content="myMainScript.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Main Script</a></li><li><a href="#3">Part B</a></li><li><a href="#4">Justifications</a></li></ul></div><pre class="codeinput">close <span class="string">all</span>;clear;clc;
+</pre><h2>Main Script<a name="2"></a></h2><pre class="codeinput">p = phantom(256);
+theta = 0:3:177;
+h = radon(p, theta);
+m = size(h, 1);
+
+L_max = floor(size(h, 1)/2);
+L_max2 = floor(L_max/2);
+
+ramlak_1 = myFilter(h, <span class="string">'ramlak'</span>, L_max);
+ramlak_2 = myFilter(h, <span class="string">'ramlak'</span>, L_max2);
+im1 = 0.5*iradon(ramlak_1, theta, <span class="string">'linear'</span>, <span class="string">'none'</span>);
+im2 = 0.5*iradon(ramlak_2, theta, <span class="string">'linear'</span>, <span class="string">'none'</span>);
+
+shepp1 = myFilter(h, <span class="string">'shepp'</span>, L_max);
+shepp2 = myFilter(h, <span class="string">'shepp'</span>, L_max2);
+im3 = 0.5*iradon(shepp1, theta, <span class="string">'linear'</span>, <span class="string">'none'</span>);
+im4 = 0.5*iradon(shepp2, theta, <span class="string">'linear'</span>, <span class="string">'none'</span>);
+
+cos1 = myFilter(h, <span class="string">'cos'</span>, L_max);
+cos2 = myFilter(h, <span class="string">'cos'</span>, L_max2);
+im5 = 0.5*iradon(cos1, theta, <span class="string">'linear'</span>, <span class="string">'none'</span>);
+im6 = 0.5*iradon(cos2, theta, <span class="string">'linear'</span>, <span class="string">'none'</span>);
+
+<span class="comment">% Plot some images</span>
+plot_images(im1, im2, <span class="string">'Used Ram-Lak filter, w=wmax'</span>, <span class="string">'Used Ram-Lak filter, w=wmax/2'</span>);
+plot_images(im3, im4, <span class="string">'Used Shepp-Logan filter, w=wmax'</span>, <span class="string">'Used Shepp-Logan filter, w=wmax/2'</span>);
+plot_images(im5, im6, <span class="string">'Used cosine filter, w=wmax'</span>, <span class="string">'Used cosine filter, w=wmax/2'</span>);
+</pre><img vspace="5" hspace="5" src="myMainScript_01.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_02.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_03.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_04.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_05.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_06.png" alt=""> <h2>Part B<a name="3"></a></h2><pre class="codeinput">mask = fspecial(<span class="string">'gaussian'</span>, 11, 1);
+mask5 = fspecial(<span class="string">'gaussian'</span>, 51, 5);
+S0 = p;
+S1 = conv2(p, mask, <span class="string">'same'</span>);
+S5 = conv2(p, mask5, <span class="string">'same'</span>);
+figure;
+imagesc(S0);
+title(<span class="string">'Original image'</span>);
+
+figure;
+imagesc(S1);
+title(<span class="string">'Gaussian blurred with sigma = 1, kernel = 11*11'</span>);
+
+figure;
+imagesc(S5);
+title(<span class="string">'Gaussian blurred with sigma = 5, kernel = 51*51'</span>);
+
+r0 = radon(S0, theta);
+r1 = radon(S1, theta);
+r5 = radon(S5, theta);
+
+h0 = myFilter(r0, <span class="string">'ramlak'</span>, L_max);
+h1 = myFilter(r1, <span class="string">'ramlak'</span>, L_max);
+h5 = myFilter(r5, <span class="string">'ramlak'</span>, L_max);
+
+r0 = 0.5*iradon(h0, theta, <span class="string">'linear'</span>, <span class="string">'none'</span>);
+r0 = r0(2:257, 2:257);
+r1 = 0.5*iradon(h1, theta, <span class="string">'linear'</span>, <span class="string">'none'</span>);
+r1 = r1(2:257, 2:257);
+r5 = 0.5*iradon(h5, theta, <span class="string">'linear'</span>, <span class="string">'none'</span>);
+r5 = r5(2:257, 2:257);
+
+fprintf(<span class="string">'The RMSE value for S0 is %f\n'</span>, RMSE(r0, S0));
+fprintf(<span class="string">'The RMSE value for S1 is %f\n'</span>, RMSE(r1, S1));
+fprintf(<span class="string">'The RMSE value for S2 is %f\n'</span>, RMSE(r5, S5));
+
+plot_rmse(S0, L_max, theta, <span class="string">'RRMSE for S0'</span>);
+plot_rmse(S1, L_max, theta, <span class="string">'RRMSE for S1'</span>);
+plot_rmse(S5, L_max, theta, <span class="string">'RRMSE for S5'</span>);
+</pre><pre class="codeoutput">The RMSE value for S0 is 0.818452
+The RMSE value for S1 is 0.526669
+The RMSE value for S2 is 0.066239
+</pre><img vspace="5" hspace="5" src="myMainScript_07.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_08.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_09.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_10.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_11.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_12.png" alt=""> <h2>Justifications<a name="4"></a></h2><pre>(a) We see that cosine filter blurs the image by a big factor as
+compared to Ram-Lak and Shepp-Logan because the cos(..) term descends to
+0 as the value goes upto L. Shepp-Logan has the sinc function
+multiplied, which also dampens the higher frequencies. Hence, from a
+smoothness perspective, Cosine &gt; SheppLogan &gt; RamLak for the same value
+of parameter. For the same method, but with different parameters, we see
+that the edges are more prominent in the w = wmax case because we
+preserve more high frequency components.</pre><pre>(b) We see that the RRMSE value is the minimum for the most blurred
+image (I had to normalize the images to bring them to the same range).
+Since backprojection has the property of blurring the true image, it
+deviates more from a sharp image, and for a blurred image, the high
+frequency component is already low, hence the filter doesn't do much, and
+the resulting backprojection is close to the true image. This is the
+reason which the RRMSE decrease as the blurring factor increases.</pre><pre>(c) For every image, initially, all the frequencies are attentuated,
+leaving nothing in the fourier domain to invert from. As we increase L,
+we gain more and more frequencies, and when we make L too high, then the
+noisy components start to creeep into the fourier domain. In the case of
+the blurred image, the high frequency components are already attenuated,
+hence the RRMSE doesn't go up, but rather stays constant. In the first
+two cases, the RRMSE goes a bit high because the high componenets start
+appearing, which deviate from the blurry backprojection.</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+close all;clear;clc;
+
+%% Main Script
+p = phantom(256);
+theta = 0:3:177;
+h = radon(p, theta);
+m = size(h, 1);
+
+L_max = floor(size(h, 1)/2);
+L_max2 = floor(L_max/2);
+
+ramlak_1 = myFilter(h, 'ramlak', L_max);
+ramlak_2 = myFilter(h, 'ramlak', L_max2);
+im1 = 0.5*iradon(ramlak_1, theta, 'linear', 'none');
+im2 = 0.5*iradon(ramlak_2, theta, 'linear', 'none');
+
+shepp1 = myFilter(h, 'shepp', L_max);
+shepp2 = myFilter(h, 'shepp', L_max2);
+im3 = 0.5*iradon(shepp1, theta, 'linear', 'none');
+im4 = 0.5*iradon(shepp2, theta, 'linear', 'none');
+
+cos1 = myFilter(h, 'cos', L_max);
+cos2 = myFilter(h, 'cos', L_max2);
+im5 = 0.5*iradon(cos1, theta, 'linear', 'none');
+im6 = 0.5*iradon(cos2, theta, 'linear', 'none');
+
+% Plot some images
+plot_images(im1, im2, 'Used Ram-Lak filter, w=wmax', 'Used Ram-Lak filter, w=wmax/2');
+plot_images(im3, im4, 'Used Shepp-Logan filter, w=wmax', 'Used Shepp-Logan filter, w=wmax/2');
+plot_images(im5, im6, 'Used cosine filter, w=wmax', 'Used cosine filter, w=wmax/2');
+
+%% Part B
+mask = fspecial('gaussian', 11, 1);
+mask5 = fspecial('gaussian', 51, 5);
+S0 = p;
+S1 = conv2(p, mask, 'same');
+S5 = conv2(p, mask5, 'same');
+figure;
+imagesc(S0);
+title('Original image');
+
+figure;
+imagesc(S1);
+title('Gaussian blurred with sigma = 1, kernel = 11*11');
+
+figure;
+imagesc(S5);
+title('Gaussian blurred with sigma = 5, kernel = 51*51');
+
+r0 = radon(S0, theta);
+r1 = radon(S1, theta);
+r5 = radon(S5, theta);
+
+h0 = myFilter(r0, 'ramlak', L_max);
+h1 = myFilter(r1, 'ramlak', L_max);
+h5 = myFilter(r5, 'ramlak', L_max);
+
+r0 = 0.5*iradon(h0, theta, 'linear', 'none');
+r0 = r0(2:257, 2:257);
+r1 = 0.5*iradon(h1, theta, 'linear', 'none');
+r1 = r1(2:257, 2:257);
+r5 = 0.5*iradon(h5, theta, 'linear', 'none');
+r5 = r5(2:257, 2:257);
+
+fprintf('The RMSE value for S0 is %f\n', RMSE(r0, S0));
+fprintf('The RMSE value for S1 is %f\n', RMSE(r1, S1));
+fprintf('The RMSE value for S2 is %f\n', RMSE(r5, S5));
+
+plot_rmse(S0, L_max, theta, 'RRMSE for S0');
+plot_rmse(S1, L_max, theta, 'RRMSE for S1');
+plot_rmse(S5, L_max, theta, 'RRMSE for S5');
+
+%% Justifications
+%  (a) We see that cosine filter blurs the image by a big factor as
+%  compared to Ram-Lak and Shepp-Logan because the cos(..) term descends to
+%  0 as the value goes upto L. Shepp-Logan has the sinc function
+%  multiplied, which also dampens the higher frequencies. Hence, from a
+%  smoothness perspective, Cosine > SheppLogan > RamLak for the same value
+%  of parameter. For the same method, but with different parameters, we see
+%  that the edges are more prominent in the w = wmax case because we
+%  preserve more high frequency components. 
+%
+%  (b) We see that the RRMSE value is the minimum for the most blurred
+%  image (I had to normalize the images to bring them to the same range).
+%  Since backprojection has the property of blurring the true image, it
+%  deviates more from a sharp image, and for a blurred image, the high
+%  frequency component is already low, hence the filter doesn't do much, and
+%  the resulting backprojection is close to the true image. This is the
+%  reason which the RRMSE decrease as the blurring factor increases.
+%
+%  (c) For every image, initially, all the frequencies are attentuated,
+%  leaving nothing in the fourier domain to invert from. As we increase L,
+%  we gain more and more frequencies, and when we make L too high, then the
+%  noisy components start to creeep into the fourier domain. In the case of
+%  the blurred image, the high frequency components are already attenuated,
+%  hence the RRMSE doesn't go up, but rather stays constant. In the first
+%  two cases, the RRMSE goes a bit high because the high componenets start
+%  appearing, which deviate from the blurry backprojection.
+
+
+
+##### SOURCE END #####
+--></body></html>

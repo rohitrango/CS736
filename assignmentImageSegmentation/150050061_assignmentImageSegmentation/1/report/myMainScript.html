@@ -1,0 +1,555 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>myMainScript</title><meta name="generator" content="MATLAB 8.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-04-08"><meta name="DC.source" content="myMainScript.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Crop</a></li><li><a href="#3">FCM</a></li><li><a href="#4">Observations and descriptions</a></li><li><a href="#5">Choice of initial memberships</a></li><li><a href="#6">Choice of class means</a></li><li><a href="#7">Choice of mask</a></li><li><a href="#8">Main algorithm</a></li><li><a href="#9">Post algo</a></li><li><a href="#10">Plots</a></li></ul></div><pre class="codeinput"><span class="comment">% load data</span>
+close <span class="string">all</span>; clear; clc;
+load(<span class="string">'../data/assignmentSegmentBrain.mat'</span>);
+[m, n] = size(imageData);
+
+image = imageData.*imageMask;
+</pre><h2>Crop<a name="2"></a></h2><pre class="codeinput">a=sum(imageMask);
+b=sum(imageMask,2);
+rowMin=find(b~=0,1,<span class="string">'first'</span>);
+rowMax=find(b~=0,1,<span class="string">'last'</span>);
+columnMin=find(a~=0,1,<span class="string">'first'</span>);
+columnMax=find(a~=0,1,<span class="string">'last'</span>);
+
+rect=[columnMin rowMin columnMax-columnMin rowMax-rowMin];
+image=imcrop(imageData.*imageMask,rect);
+[m,n] = size(image);
+</pre><h2>FCM<a name="3"></a></h2><p>Load params</p><pre class="codeinput">K = 3;
+
+<span class="comment">% Run KMeans as prior</span>
+[~, C] = kmeans(image(:), 4);
+
+<span class="comment">% Tunable parameters</span>
+q = 1.68;
+mask = fspecial(<span class="string">'gaussian'</span>);
+U = ones(m, n, K)/K;
+classMeans = C(C&gt;0.05);
+iters = 200;
+bias = 0.5*ones(m, n);
+
+U = ones(m, n, K)/K;
+<span class="keyword">for</span> i=1:K,
+   figure;
+   imagesc(U(:,:,i));
+   colormap(gray);
+   axis <span class="string">tight</span>;
+   daspect([1, 1, 1]);
+   title([<span class="string">'Initial memberships for K='</span>, num2str(i)]);
+<span class="keyword">end</span>
+
+<span class="comment">% Print initial class means</span>
+fprintf(<span class="string">'Initial class means\n'</span>);
+disp(classMeans);
+
+fprintf(<span class="string">'Value of q: %f\n'</span>, q);
+</pre><pre class="codeoutput">Initial class means
+    0.6364
+    0.2533
+    0.4574
+Value of q: 1.680000
+</pre><img vspace="5" hspace="5" src="myMainScript_01.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_02.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_03.png" alt=""> <h2>Observations and descriptions<a name="4"></a></h2><h2>Choice of initial memberships<a name="5"></a></h2><pre>The value of initial memberships is taken to be uniform across all
+classes. This is because I don't know a-priori the appropriate
+memberships and it is statistically a safe measure to initialize
+uniformly since we have only 3 classes. Also, a better choice of 'q' and
+'classMeans' suffice to run the algorithm with great efficiency.</pre><h2>Choice of class means<a name="6"></a></h2><pre>This was the place where I could make an intelligent initialization. I
+ran the normal k means on the image with 4 classes (considering the one
+for background too, so that I have a nearby estimate of the actual
+means). I discarded the first mean since it was for the background. In
+fact, running this algorithm assigns membership to the background along
+with some other class, which may be undesirable. Nevertheless, since it
+has been told to take K = 3, I have taken it.</pre><h2>Choice of mask<a name="7"></a></h2><pre>Obviously, the smoothness asssumption for bias only holds locally, and
+it has to be dependent on distance. Gaussian is a fair choice to make
+here.</pre><h2>Main algorithm<a name="8"></a></h2><pre class="codeinput">[U, classMeans, B, losses] = runModifiedFCM(image, K, q, mask, U, classMeans, bias, iters);
+</pre><pre class="codeoutput">Normalised log loss : 0.160653
+Normalised log loss : 0.158111
+Normalised log loss : 0.157520
+Normalised log loss : 0.157389
+Normalised log loss : 0.157293
+Normalised log loss : 0.157216
+Normalised log loss : 0.157158
+Normalised log loss : 0.157113
+Normalised log loss : 0.157076
+Normalised log loss : 0.157045
+Normalised log loss : 0.157019
+Normalised log loss : 0.156999
+Normalised log loss : 0.156983
+Normalised log loss : 0.156971
+Normalised log loss : 0.156959
+Normalised log loss : 0.156949
+Normalised log loss : 0.156941
+Normalised log loss : 0.156935
+Normalised log loss : 0.156929
+Normalised log loss : 0.156926
+Normalised log loss : 0.156923
+Normalised log loss : 0.156921
+Normalised log loss : 0.156919
+Normalised log loss : 0.156917
+Normalised log loss : 0.156915
+Normalised log loss : 0.156914
+Normalised log loss : 0.156912
+Normalised log loss : 0.156910
+Normalised log loss : 0.156909
+Normalised log loss : 0.156909
+Normalised log loss : 0.156908
+Normalised log loss : 0.156908
+Normalised log loss : 0.156908
+Normalised log loss : 0.156908
+Normalised log loss : 0.156909
+Normalised log loss : 0.156909
+Normalised log loss : 0.156909
+Normalised log loss : 0.156909
+Normalised log loss : 0.156909
+Normalised log loss : 0.156909
+Normalised log loss : 0.156909
+Normalised log loss : 0.156910
+Normalised log loss : 0.156911
+Normalised log loss : 0.156911
+Normalised log loss : 0.156912
+Normalised log loss : 0.156912
+Normalised log loss : 0.156913
+Normalised log loss : 0.156913
+Normalised log loss : 0.156914
+Normalised log loss : 0.156915
+Normalised log loss : 0.156917
+Normalised log loss : 0.156918
+Normalised log loss : 0.156920
+Normalised log loss : 0.156921
+Normalised log loss : 0.156923
+Normalised log loss : 0.156923
+Normalised log loss : 0.156923
+Normalised log loss : 0.156923
+Normalised log loss : 0.156924
+Normalised log loss : 0.156924
+Normalised log loss : 0.156924
+Normalised log loss : 0.156925
+Normalised log loss : 0.156925
+Normalised log loss : 0.156925
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156927
+Normalised log loss : 0.156927
+Normalised log loss : 0.156927
+Normalised log loss : 0.156928
+Normalised log loss : 0.156928
+Normalised log loss : 0.156928
+Normalised log loss : 0.156929
+Normalised log loss : 0.156929
+Normalised log loss : 0.156929
+Normalised log loss : 0.156928
+Normalised log loss : 0.156928
+Normalised log loss : 0.156928
+Normalised log loss : 0.156928
+Normalised log loss : 0.156928
+Normalised log loss : 0.156928
+Normalised log loss : 0.156928
+Normalised log loss : 0.156928
+Normalised log loss : 0.156928
+Normalised log loss : 0.156928
+Normalised log loss : 0.156928
+Normalised log loss : 0.156929
+Normalised log loss : 0.156929
+Normalised log loss : 0.156929
+Normalised log loss : 0.156929
+Normalised log loss : 0.156928
+Normalised log loss : 0.156929
+Normalised log loss : 0.156928
+Normalised log loss : 0.156929
+Normalised log loss : 0.156929
+Normalised log loss : 0.156928
+Normalised log loss : 0.156928
+Normalised log loss : 0.156928
+Normalised log loss : 0.156928
+Normalised log loss : 0.156928
+Normalised log loss : 0.156928
+Normalised log loss : 0.156927
+Normalised log loss : 0.156927
+Normalised log loss : 0.156927
+Normalised log loss : 0.156927
+Normalised log loss : 0.156927
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+Normalised log loss : 0.156926
+</pre><h2>Post algo<a name="9"></a></h2><p>Find residual and A</p><pre class="codeinput">A = zeros(m, n);
+<span class="keyword">for</span> i=1:K,
+   A = A + U(:,:,i)*classMeans(i);
+<span class="keyword">end</span>
+R = image - A.*B;
+</pre><h2>Plots<a name="10"></a></h2><pre class="codeinput">fprintf(<span class="string">'Final class means\n'</span>);
+disp(classMeans);
+
+<span class="comment">% plot losses</span>
+figure;
+plot((losses));
+title(<span class="string">'Normalized loss function'</span>);
+
+<span class="comment">% mask</span>
+figure;
+imagesc(mask);
+colormap(gray);
+axis <span class="string">tight</span>;
+daspect([1, 1, 1]);
+title(<span class="string">'Weight mask'</span>);
+
+<span class="comment">% Original image</span>
+figure;
+imagesc(image);
+colormap(gray);
+axis <span class="string">tight</span>;
+daspect([1, 1, 1]);
+title(<span class="string">'Original image (cropped)'</span>);
+
+<span class="comment">% Bias removed image</span>
+figure;
+imagesc(B);
+colormap(gray);
+axis <span class="string">tight</span>;
+daspect([1, 1, 1]);
+title(<span class="string">'Bias-removed image'</span>);
+
+<span class="comment">% Bias image</span>
+figure;
+imagesc(A);
+colormap(gray);
+axis <span class="string">tight</span>;
+daspect([1, 1, 1]);
+title(<span class="string">'Bias-field image estimate'</span>);
+
+<span class="comment">% Residual image</span>
+figure;
+imagesc(R);
+colormap(gray);
+axis <span class="string">tight</span>;
+daspect([1, 1, 1]);
+title(<span class="string">'Residual image'</span>);
+
+<span class="comment">% Memberships</span>
+<span class="keyword">for</span> i=1:K,
+   figure;
+   imagesc(U(:,:,i));
+   colormap(gray);
+   axis <span class="string">tight</span>;
+   daspect([1, 1, 1]);
+   title([<span class="string">'Final memberships for K='</span>, num2str(i)]);
+<span class="keyword">end</span>
+
+<span class="comment">% Segmentation</span>
+figure;
+imagesc(U);
+axis <span class="string">tight</span>;
+daspect([1, 1, 1]);
+title(<span class="string">'Segmentation map'</span>);
+</pre><pre class="codeoutput">Final class means
+    0.9112
+    0.1161
+    0.6820
+</pre><img vspace="5" hspace="5" src="myMainScript_04.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_05.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_06.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_07.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_08.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_09.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_10.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_11.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_12.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_13.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+% load data
+close all; clear; clc;
+load('../data/assignmentSegmentBrain.mat');
+[m, n] = size(imageData);
+
+image = imageData.*imageMask;
+
+%% Crop
+a=sum(imageMask);
+b=sum(imageMask,2);
+rowMin=find(b~=0,1,'first');
+rowMax=find(b~=0,1,'last');
+columnMin=find(a~=0,1,'first');
+columnMax=find(a~=0,1,'last');
+
+rect=[columnMin rowMin columnMax-columnMin rowMax-rowMin];
+image=imcrop(imageData.*imageMask,rect);
+[m,n] = size(image);
+
+%% FCM
+% Load params
+K = 3;
+
+% Run KMeans as prior
+[~, C] = kmeans(image(:), 4);
+
+% Tunable parameters
+q = 1.68;
+mask = fspecial('gaussian');
+U = ones(m, n, K)/K;
+classMeans = C(C>0.05);
+iters = 200;
+bias = 0.5*ones(m, n);
+
+U = ones(m, n, K)/K;
+for i=1:K,
+   figure;
+   imagesc(U(:,:,i));
+   colormap(gray);
+   axis tight;
+   daspect([1, 1, 1]);
+   title(['Initial memberships for K=', num2str(i)]);
+end
+
+% Print initial class means
+fprintf('Initial class means\n');
+disp(classMeans);
+
+fprintf('Value of q: %f\n', q);
+
+%% Observations and descriptions
+
+%% Choice of initial memberships
+%  The value of initial memberships is taken to be uniform across all
+%  classes. This is because I don't know a-priori the appropriate
+%  memberships and it is statistically a safe measure to initialize
+%  uniformly since we have only 3 classes. Also, a better choice of 'q' and
+%  'classMeans' suffice to run the algorithm with great efficiency.
+%% Choice of class means
+%  This was the place where I could make an intelligent initialization. I
+%  ran the normal k means on the image with 4 classes (considering the one
+%  for background too, so that I have a nearby estimate of the actual
+%  means). I discarded the first mean since it was for the background. In
+%  fact, running this algorithm assigns membership to the background along 
+%  with some other class, which may be undesirable. Nevertheless, since it
+%  has been told to take K = 3, I have taken it.
+%% Choice of mask
+%  Obviously, the smoothness asssumption for bias only holds locally, and
+%  it has to be dependent on distance. Gaussian is a fair choice to make
+%  here.
+
+
+%% Main algorithm
+[U, classMeans, B, losses] = runModifiedFCM(image, K, q, mask, U, classMeans, bias, iters);
+
+%% Post algo
+% Find residual and A
+A = zeros(m, n);
+for i=1:K,
+   A = A + U(:,:,i)*classMeans(i); 
+end
+R = image - A.*B;
+
+%% Plots
+fprintf('Final class means\n');
+disp(classMeans);
+
+% plot losses
+figure;
+plot((losses));
+title('Normalized loss function');
+
+% mask
+figure;
+imagesc(mask);
+colormap(gray);
+axis tight;
+daspect([1, 1, 1]);
+title('Weight mask');
+
+% Original image
+figure;
+imagesc(image);
+colormap(gray);
+axis tight;
+daspect([1, 1, 1]);
+title('Original image (cropped)');
+
+% Bias removed image
+figure;
+imagesc(B);
+colormap(gray);
+axis tight;
+daspect([1, 1, 1]);
+title('Bias-removed image');
+
+% Bias image
+figure;
+imagesc(A);
+colormap(gray);
+axis tight;
+daspect([1, 1, 1]);
+title('Bias-field image estimate');
+
+% Residual image
+figure;
+imagesc(R);
+colormap(gray);
+axis tight;
+daspect([1, 1, 1]);
+title('Residual image'); 
+
+% Memberships
+for i=1:K,
+   figure;
+   imagesc(U(:,:,i));
+   colormap(gray);
+   axis tight;
+   daspect([1, 1, 1]);
+   title(['Final memberships for K=', num2str(i)]);
+end
+
+% Segmentation
+figure;
+imagesc(U);
+axis tight;
+daspect([1, 1, 1]);
+title('Segmentation map'); 
+##### SOURCE END #####
+--></body></html>

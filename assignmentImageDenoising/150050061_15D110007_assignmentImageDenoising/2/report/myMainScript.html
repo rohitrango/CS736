@@ -1,0 +1,296 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>myMainScript</title><meta name="generator" content="MATLAB 8.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-02-18"><meta name="DC.source" content="myMainScript.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body>
+<div class="content"><h1>Note: The notation for alpha is opposite to that mentioned in class (and in the PS). So, please treat the value of alpha as 1-alpha (and vice versa)</h1></div>
+<div class="content"><h2>Contents</h2><div><ul><li><a href="#2">Quadratic loss</a></li><li><a href="#3">Huber loss</a></li><li><a href="#4">discontinuity adaptive loss</a></li></ul></div><pre class="codeinput">tic;
+load(<span class="string">'../data/assignmentImageDenoisingBrainNoisy.mat'</span>);
+
+myNumOfColors = 200;
+myColorScale = [ [0:1/(myNumOfColors-1):1]' , [0:1/(myNumOfColors-1):1]', [0:1/(myNumOfColors-1):1]' ];
+
+<span class="comment">% First, we determine the variances of the real and imaginary parts</span>
+<span class="comment">% of the image.</span>
+K = 50;
+Bg = imageNoisy(1:K, 1:K);
+realBg = real(Bg);
+imagBg = imag(Bg);
+varReal = var(realBg(:));
+varImag = var(imagBg(:));
+imVar = mean([varReal, varImag]);
+
+figure;
+subplot(2,1,1);
+imagesc(realBg);
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis <span class="string">tight</span>;
+title(<span class="string">'Real part of noisy background'</span>);
+xlabel([<span class="string">'variance='</span>, num2str(varReal)]);
+
+subplot(2,1,2);
+imagesc(imagBg);
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis <span class="string">tight</span>;
+title(<span class="string">'Imaginary part of noisy background'</span>);
+xlabel([<span class="string">'variance='</span>, num2str(varImag)]);
+
+nImage = abs(imageNoisy);
+figure;
+imagesc(nImage);
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis <span class="string">tight</span>;
+title(<span class="string">'Noisy image'</span>);
+<span class="comment">% Here, we use the Rician PDF for the noise prior</span>
+<span class="comment">% Also, show the results</span>
+</pre><img vspace="5" hspace="5" src="myMainScript_01.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_02.png" alt=""> <h2>Quadratic loss<a name="2"></a></h2><pre class="codeinput">alpha = 0.086;
+gamma = 0.01;
+
+[image_quad, loss_quad] = denoise(imageNoisy, alpha, imVar, <span class="string">'q'</span>, gamma);
+
+figure;
+imagesc(image_quad);
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis <span class="string">tight</span>;
+title(<span class="string">'Denoised using quadratic prior'</span>);
+
+figure;
+plot(loss_quad);
+title(<span class="string">'Loss function using quadratic prior'</span>);
+xlabel(<span class="string">'Iteration number'</span>);
+ylabel(<span class="string">'Loss'</span>);
+</pre><img vspace="5" hspace="5" src="myMainScript_03.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_04.png" alt=""> <h2>Huber loss<a name="3"></a></h2><pre class="codeinput">alpha = 0.084;
+gamma = 0.072;
+<span class="comment">% Now for Huber loss</span>
+[image_huber, loss_huber] = denoise(imageNoisy, alpha, imVar, <span class="string">'h'</span>, gamma);
+
+figure;
+imagesc(image_huber);
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis <span class="string">tight</span>;
+title(<span class="string">'Denoised using huber prior'</span>);
+
+figure;
+plot(loss_huber);
+title(<span class="string">'Loss function using huber prior'</span>);
+xlabel(<span class="string">'Iteration number'</span>);
+ylabel(<span class="string">'Loss'</span>);
+</pre><img vspace="5" hspace="5" src="myMainScript_05.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_06.png" alt=""> <h2>discontinuity adaptive loss<a name="4"></a></h2><pre class="codeinput">alpha = 0.09;
+gamma = 0.8;
+<span class="comment">% Now for Discontinity Adaptive loss</span>
+[image_adap, loss_adap] = denoise(imageNoisy, alpha, imVar, <span class="string">'d'</span>, gamma);
+
+figure;
+<span class="comment">% subplot(1,2,1);</span>
+<span class="comment">% imagesc(nImage);</span>
+<span class="comment">% colormap(myColorScale);</span>
+<span class="comment">% daspect ([1 1 1]);</span>
+<span class="comment">% axis tight;</span>
+
+<span class="comment">% subplot(1,2,2);</span>
+imagesc(image_adap);
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis <span class="string">tight</span>;
+title(<span class="string">'Denoised using discontinuity adaptive prior'</span>);
+
+figure;
+plot(loss_adap);
+title(<span class="string">'Loss function using Discontinity Adaptive prior'</span>);
+xlabel(<span class="string">'Iteration number'</span>);
+ylabel(<span class="string">'Loss'</span>);
+
+<span class="comment">% Results</span>
+fprintf(<span class="string">'Minimum loss with quadratic prior: %f\n'</span>, loss_quad(size(loss_quad, 1)));
+fprintf(<span class="string">'Minimum loss with Huber prior: %f\n'</span>, loss_huber(size(loss_huber, 1)));
+fprintf(<span class="string">'Minimum loss with discontinuity adaptive prior: %f\n'</span>, loss_adap(size(loss_adap, 1)));
+toc;
+</pre><pre class="codeoutput">Minimum loss with quadratic prior: 73207.083730
+Minimum loss with Huber prior: 70488.608492
+Minimum loss with discontinuity adaptive prior: 72848.384514
+Elapsed time is 6.029893 seconds.
+</pre><img vspace="5" hspace="5" src="myMainScript_07.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_08.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+tic;
+load('../data/assignmentImageDenoisingBrainNoisy.mat');
+
+myNumOfColors = 200;
+myColorScale = [ [0:1/(myNumOfColors-1):1]' , [0:1/(myNumOfColors-1):1]', [0:1/(myNumOfColors-1):1]' ];
+
+% First, we determine the variances of the real and imaginary parts 
+% of the image.
+K = 50;
+Bg = imageNoisy(1:K, 1:K);
+realBg = real(Bg);
+imagBg = imag(Bg);
+varReal = var(realBg(:));
+varImag = var(imagBg(:));
+imVar = mean([varReal, varImag]);
+
+figure;
+subplot(2,1,1);
+imagesc(realBg);
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis tight;
+title('Real part of noisy background');
+xlabel(['variance=', num2str(varReal)]);
+
+subplot(2,1,2);
+imagesc(imagBg);
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis tight;
+title('Imaginary part of noisy background');
+xlabel(['variance=', num2str(varImag)]);
+
+nImage = abs(imageNoisy);
+figure;
+imagesc(nImage);
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis tight;
+title('Noisy image');
+% Here, we use the Rician PDF for the noise prior
+% Also, show the results
+
+%% Quadratic loss
+alpha = 0.086;
+gamma = 0.01;
+
+[image_quad, loss_quad] = denoise(imageNoisy, alpha, imVar, 'q', gamma);
+
+figure;
+imagesc(image_quad);
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis tight;
+title('Denoised using quadratic prior');
+
+figure;
+plot(loss_quad);
+title('Loss function using quadratic prior');
+xlabel('Iteration number');
+ylabel('Loss');
+
+%% Huber loss
+alpha = 0.084;
+gamma = 0.072;
+% Now for Huber loss
+[image_huber, loss_huber] = denoise(imageNoisy, alpha, imVar, 'h', gamma);
+
+figure;
+imagesc(image_huber);
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis tight;
+title('Denoised using huber prior');
+
+figure;
+plot(loss_huber);
+title('Loss function using huber prior');
+xlabel('Iteration number');
+ylabel('Loss');
+
+%% discontinuity adaptive loss
+alpha = 0.09;
+gamma = 0.8;
+% Now for Discontinity Adaptive loss
+[image_adap, loss_adap] = denoise(imageNoisy, alpha, imVar, 'd', gamma);
+
+figure;
+% subplot(1,2,1);
+% imagesc(nImage);
+% colormap(myColorScale);
+% daspect ([1 1 1]);
+% axis tight;
+
+% subplot(1,2,2);
+imagesc(image_adap);
+colormap(myColorScale);
+daspect ([1 1 1]);
+axis tight;
+title('Denoised using discontinuity adaptive prior');
+
+figure;
+plot(loss_adap);
+title('Loss function using Discontinity Adaptive prior');
+xlabel('Iteration number');
+ylabel('Loss');
+
+% Results
+fprintf('Minimum loss with quadratic prior: %f\n', loss_quad(size(loss_quad, 1)));
+fprintf('Minimum loss with Huber prior: %f\n', loss_huber(size(loss_huber, 1)));
+fprintf('Minimum loss with discontinuity adaptive prior: %f\n', loss_adap(size(loss_adap, 1)));
+toc;
+##### SOURCE END #####
+--></body></html>

@@ -1,0 +1,226 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>myMainScript</title><meta name="generator" content="MATLAB 8.6"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2018-04-08"><meta name="DC.source" content="myMainScript.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h1></h1><!--introduction--><!--/introduction--><h2>Contents</h2><div><ul><li><a href="#1">Init</a></li><li><a href="#2">Observations and justifications</a></li><li><a href="#3">GMM EM MRF With beta = 0.33</a></li><li><a href="#4">Optimal values of class means</a></li><li><a href="#5">GMM EM MRF With beta = 0</a></li></ul></div><h2>Init<a name="1"></a></h2><pre class="codeinput">close <span class="string">all</span>; clc; clear;
+load(<span class="string">'../data/assignmentSegmentBrainGmmEmMrf.mat'</span>);
+
+K = 3;
+X = getStartingLabel(imageData, imageMask);
+mu = zeros(1, K);
+sigma = zeros(1, K);
+beta = 0.33;
+
+<span class="comment">% init means and stddev</span>
+<span class="keyword">for</span> label = 1:K,
+    positions = X == label;
+    mu(1, label) = mean(imageData(positions));
+    sigma(1, label) = std(imageData(positions));
+<span class="keyword">end</span>;
+</pre><h2>Observations and justifications<a name="2"></a></h2><pre>Choice of beta: After a bit of tweaking, beta = 0.33 gives a smooth
+enough segmented image.</pre><pre>Initial value of labels: The labels are given by dividing the image into
+3 equal parts based on their intensities. The botton-third intensities
+are given label = 1, the middle-third are given label=2, and the last
+one-third are given label = 3.</pre><pre>Initial means and stddev: Given an initial estimate of the class labels,
+the means and stddev are simply given by the mean and stddev of the
+pixels of the class label respectively.</pre><h2>GMM EM MRF With beta = 0.33<a name="3"></a></h2><p>Gaussian Mixture Model, with Expectation Maximisation with potential beta equal to 0.33</p><pre class="codeinput">[img, segmap, mu_hat] = getEMLabels(imageData, imageMask, K, X, mu, sigma, beta, 1);
+showImage(imageData, <span class="string">'Original Corrupted Image'</span>);
+showImage(segmap(:, :, 1), <span class="string">'Label 1 Class-Membership for beta = 0.33'</span>);
+showImage(segmap(:, :, 2), <span class="string">'Label 2 Class-Membership for beta = 0.33'</span>);
+showImage(segmap(:, :, 3), <span class="string">'Label 3 Class-Membership for beta = 0.33'</span>);
+showImage(img, <span class="string">'GMM-MRF-EM Optimised Image Segmentation for beta = 0.33'</span>);
+</pre><pre class="codeoutput">P(x | y, beta, theta) : (Before) 1.413089e+05 =&gt; (After) 1.038688e+05
+P(x | y, beta, theta) : (Before) 1.504152e+05 =&gt; (After) 8.601767e+04
+P(x | y, beta, theta) : (Before) 1.557766e+05 =&gt; (After) 7.790844e+04
+P(x | y, beta, theta) : (Before) 1.586878e+05 =&gt; (After) 7.464185e+04
+P(x | y, beta, theta) : (Before) 1.590504e+05 =&gt; (After) 7.476759e+04
+P(x | y, beta, theta) : (Before) 1.580532e+05 =&gt; (After) 7.629215e+04
+P(x | y, beta, theta) : (Before) 1.566932e+05 =&gt; (After) 7.792668e+04
+P(x | y, beta, theta) : (Before) 1.550781e+05 =&gt; (After) 7.983614e+04
+P(x | y, beta, theta) : (Before) 1.531794e+05 =&gt; (After) 8.247566e+04
+P(x | y, beta, theta) : (Before) 1.512899e+05 =&gt; (After) 8.554409e+04
+P(x | y, beta, theta) : (Before) 1.498042e+05 =&gt; (After) 8.813649e+04
+P(x | y, beta, theta) : (Before) 1.487358e+05 =&gt; (After) 9.019660e+04
+P(x | y, beta, theta) : (Before) 1.479822e+05 =&gt; (After) 9.161901e+04
+P(x | y, beta, theta) : (Before) 1.476119e+05 =&gt; (After) 9.237260e+04
+P(x | y, beta, theta) : (Before) 1.473710e+05 =&gt; (After) 9.283130e+04
+P(x | y, beta, theta) : (Before) 1.471396e+05 =&gt; (After) 9.325458e+04
+P(x | y, beta, theta) : (Before) 1.470366e+05 =&gt; (After) 9.345990e+04
+P(x | y, beta, theta) : (Before) 1.470031e+05 =&gt; (After) 9.352079e+04
+P(x | y, beta, theta) : (Before) 1.469669e+05 =&gt; (After) 9.361012e+04
+P(x | y, beta, theta) : (Before) 1.469701e+05 =&gt; (After) 9.362463e+04
+P(x | y, beta, theta) : (Before) 1.469338e+05 =&gt; (After) 9.368556e+04
+P(x | y, beta, theta) : (Before) 1.469225e+05 =&gt; (After) 9.371315e+04
+P(x | y, beta, theta) : (Before) 1.469136e+05 =&gt; (After) 9.373566e+04
+P(x | y, beta, theta) : (Before) 1.469290e+05 =&gt; (After) 9.370839e+04
+P(x | y, beta, theta) : (Before) 1.469482e+05 =&gt; (After) 9.368884e+04
+P(x | y, beta, theta) : (Before) 1.469794e+05 =&gt; (After) 9.364370e+04
+P(x | y, beta, theta) : (Before) 1.470018e+05 =&gt; (After) 9.361675e+04
+P(x | y, beta, theta) : (Before) 1.469869e+05 =&gt; (After) 9.363984e+04
+P(x | y, beta, theta) : (Before) 1.470097e+05 =&gt; (After) 9.359763e+04
+P(x | y, beta, theta) : (Before) 1.470049e+05 =&gt; (After) 9.359904e+04
+</pre><img vspace="5" hspace="5" src="myMainScript_01.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_02.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_03.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_04.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_05.png" alt=""> <h2>Optimal values of class means<a name="4"></a></h2><pre class="codeinput">fprintf(<span class="string">'Optimal values of class means for chosen beta\n'</span>);
+disp(mu_hat);
+fprintf(<span class="string">'\n'</span>);
+</pre><pre class="codeoutput">Optimal values of class means for chosen beta
+    0.4309    0.5476    0.6383
+
+</pre><h2>GMM EM MRF With beta = 0<a name="5"></a></h2><p>Gaussian Mixture Model, with Expectation Maximisation with no MRF</p><pre class="codeinput">[img, segmap, mu_hat] = getEMLabels(imageData, imageMask, K, X, mu, sigma, 0, 1);
+showImage(segmap(:, :, 1), <span class="string">'Label 1 Class-Membership for beta = 0'</span>);
+showImage(segmap(:, :, 2), <span class="string">'Label 2 Class-Membership for beta = 0'</span>);
+showImage(segmap(:, :, 3), <span class="string">'Label 3 Class-Membership for beta = 0'</span>);
+showImage(img, <span class="string">'GMM-MRF-EM Optimised Image Segmentation for beta = 0'</span>);
+</pre><pre class="codeoutput">P(x | y, beta, theta) : (Before) 1.435754e+05 =&gt; (After) 1.014720e+05
+P(x | y, beta, theta) : (Before) 1.579995e+05 =&gt; (After) 7.563005e+04
+P(x | y, beta, theta) : (Before) 1.677809e+05 =&gt; (After) 6.274537e+04
+P(x | y, beta, theta) : (Before) 1.710243e+05 =&gt; (After) 5.993031e+04
+P(x | y, beta, theta) : (Before) 1.710912e+05 =&gt; (After) 6.013437e+04
+P(x | y, beta, theta) : (Before) 1.712094e+05 =&gt; (After) 5.909322e+04
+P(x | y, beta, theta) : (Before) 1.719222e+05 =&gt; (After) 5.686855e+04
+P(x | y, beta, theta) : (Before) 1.731992e+05 =&gt; (After) 5.444063e+04
+P(x | y, beta, theta) : (Before) 1.748066e+05 =&gt; (After) 5.323053e+04
+P(x | y, beta, theta) : (Before) 1.754483e+05 =&gt; (After) 5.490718e+04
+P(x | y, beta, theta) : (Before) 1.748218e+05 =&gt; (After) 5.801548e+04
+P(x | y, beta, theta) : (Before) 1.739007e+05 =&gt; (After) 6.044417e+04
+P(x | y, beta, theta) : (Before) 1.730242e+05 =&gt; (After) 6.220000e+04
+P(x | y, beta, theta) : (Before) 1.721453e+05 =&gt; (After) 6.372952e+04
+P(x | y, beta, theta) : (Before) 1.712360e+05 =&gt; (After) 6.522482e+04
+P(x | y, beta, theta) : (Before) 1.703325e+05 =&gt; (After) 6.669486e+04
+P(x | y, beta, theta) : (Before) 1.695194e+05 =&gt; (After) 6.802342e+04
+P(x | y, beta, theta) : (Before) 1.688440e+05 =&gt; (After) 6.914973e+04
+P(x | y, beta, theta) : (Before) 1.682950e+05 =&gt; (After) 7.008594e+04
+P(x | y, beta, theta) : (Before) 1.678601e+05 =&gt; (After) 7.084555e+04
+P(x | y, beta, theta) : (Before) 1.675169e+05 =&gt; (After) 7.145995e+04
+P(x | y, beta, theta) : (Before) 1.672535e+05 =&gt; (After) 7.194363e+04
+P(x | y, beta, theta) : (Before) 1.670554e+05 =&gt; (After) 7.231754e+04
+P(x | y, beta, theta) : (Before) 1.669096e+05 =&gt; (After) 7.260149e+04
+P(x | y, beta, theta) : (Before) 1.668059e+05 =&gt; (After) 7.281173e+04
+P(x | y, beta, theta) : (Before) 1.667344e+05 =&gt; (After) 7.296400e+04
+P(x | y, beta, theta) : (Before) 1.666877e+05 =&gt; (After) 7.307109e+04
+P(x | y, beta, theta) : (Before) 1.666588e+05 =&gt; (After) 7.314464e+04
+P(x | y, beta, theta) : (Before) 1.666442e+05 =&gt; (After) 7.319100e+04
+P(x | y, beta, theta) : (Before) 1.666406e+05 =&gt; (After) 7.321652e+04
+</pre><img vspace="5" hspace="5" src="myMainScript_06.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_07.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_08.png" alt=""> <img vspace="5" hspace="5" src="myMainScript_09.png" alt=""> <p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+
+%% Init
+close all; clc; clear;
+load('../data/assignmentSegmentBrainGmmEmMrf.mat');
+
+K = 3;
+X = getStartingLabel(imageData, imageMask);
+mu = zeros(1, K);
+sigma = zeros(1, K);
+beta = 0.33;
+   
+% init means and stddev
+for label = 1:K,
+    positions = X == label;
+    mu(1, label) = mean(imageData(positions));
+    sigma(1, label) = std(imageData(positions));
+end;
+
+%% Observations and justifications
+%  Choice of beta: After a bit of tweaking, beta = 0.33 gives a smooth
+%  enough segmented image.
+%
+%  Initial value of labels: The labels are given by dividing the image into
+%  3 equal parts based on their intensities. The botton-third intensities
+%  are given label = 1, the middle-third are given label=2, and the last
+%  one-third are given label = 3.
+%
+%  Initial means and stddev: Given an initial estimate of the class labels,
+%  the means and stddev are simply given by the mean and stddev of the
+%  pixels of the class label respectively.
+%
+
+%% GMM EM MRF With beta = 0.33
+% Gaussian Mixture Model, with Expectation Maximisation with potential beta
+% equal to 0.33
+
+[img, segmap, mu_hat] = getEMLabels(imageData, imageMask, K, X, mu, sigma, beta, 1);
+showImage(imageData, 'Original Corrupted Image');
+showImage(segmap(:, :, 1), 'Label 1 Class-Membership for beta = 0.33');
+showImage(segmap(:, :, 2), 'Label 2 Class-Membership for beta = 0.33');
+showImage(segmap(:, :, 3), 'Label 3 Class-Membership for beta = 0.33');
+showImage(img, 'GMM-MRF-EM Optimised Image Segmentation for beta = 0.33');
+
+%% Optimal values of class means
+fprintf('Optimal values of class means for chosen beta\n');
+disp(mu_hat);
+fprintf('\n');
+
+%% GMM EM MRF With beta = 0
+% Gaussian Mixture Model, with Expectation Maximisation with no MRF
+
+[img, segmap, mu_hat] = getEMLabels(imageData, imageMask, K, X, mu, sigma, 0, 1);
+showImage(segmap(:, :, 1), 'Label 1 Class-Membership for beta = 0');
+showImage(segmap(:, :, 2), 'Label 2 Class-Membership for beta = 0');
+showImage(segmap(:, :, 3), 'Label 3 Class-Membership for beta = 0');
+showImage(img, 'GMM-MRF-EM Optimised Image Segmentation for beta = 0');
+##### SOURCE END #####
+--></body></html>
